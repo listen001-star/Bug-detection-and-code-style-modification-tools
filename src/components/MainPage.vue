@@ -31,24 +31,17 @@
               <p>Logic Errors: 35%</p>
               <p>Style Issues: 25%</p>
             </div>
+            <div class="charts-container d-flex">
+              <BarChart :data="barData" />
+              <PieChart :data="pieData" />
+              
+            </div>
           </div>
         </div>
       </div>
 
       <div v-if="currentView === 'history'">
-        <div class="card p-5 shadow rounded">
-          <h2 class="mb-4">History Data</h2>
-          <ul>
-            <li class="mb-3">
-              <span>2024-11-10 10:00 - analysis1.py</span>
-              <button class="btn btn-view-result ml-3" @click="showModal = true">查看结果</button>
-            </li>
-            <li class="mb-3">
-              <span>2024-11-10 11:00 - analysis2.py</span>
-              <button class="btn btn-view-result ml-3" @click="showModal = true">查看结果</button>
-            </li>
-          </ul>
-        </div>
+        <HistoryPage />
       </div>
     </div>
 
@@ -69,17 +62,34 @@
 </template>
 
 <script>
+import BarChart from './BarChart.vue';
+import PieChart from './PieChart.vue';
+import HistoryPage from './HistoryPage.vue';
+
 export default {
   name: 'MainPage',
+  components: {
+    BarChart,
+    PieChart,
+    HistoryPage,
+  },
+
   data() {
     return {
       username: 'User',
       currentView: 'main', // 初始界面设置为 'main'
       showResults: false,
       showModal: false,
+      //showResults: false,
+      pieData: [20, 25, 15, 20, 20],
+      barData: [50, 30, 40, 20, 60],
     };
   },
   methods: {
+    analyze() {
+      this.showResults = true;
+      this.pieData = [20, 30, 10, 25, 15]; // 模拟的分析结果
+    },
     logout() {
       this.$emit('switch', 'LoginPage'); // 触发事件通知父组件切换到登录界面
     },
@@ -88,6 +98,18 @@ export default {
 </script>
 
 <style scoped>
+.charts-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 20px;
+}
+
+.chart-container {
+  flex: 1;
+  height: 300px; /* 可以根据需要调整高度 */
+}
+
 .top-bar {
   background-color: #f8f9fa;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
