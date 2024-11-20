@@ -1,6 +1,6 @@
 <template>
   <div class="vh-100 d-flex flex-column">
-    <!-- 顶部横向栏，包含用户问候、页面选择和登出按钮 -->
+    <!-- 顶部横向栏 -->
     <div class="top-bar d-flex justify-content-between align-items-center p-3">
       <div class="d-flex align-items-center">
         <span class="username-display mr-5">Hello, {{ username }}</span>
@@ -17,24 +17,19 @@
           <h2 class="mb-4">Welcome to Main Page</h2>
           <div class="mb-4">
             <h3>Upload Python File</h3>
-            <input type="file" class="form-control-file" accept=".py" />
+            <input type="file" class="form-control-file" accept=".py" @change="handleFileUpload" />
           </div>
           <div class="mb-4">
             <h3>Execute Command</h3>
-            <button class="btn btn-analyze btn-block" @click="showResults = true">Analyze with Pylint</button>
+            <button class="btn btn-analyze btn-block" @click="analyze">Analyze with Pylint</button>
           </div>
           <div v-if="showResults" class="mt-4">
             <h3>Results</h3>
-            <p>Score: 85</p>
-            <div class="static-pie-chart">
-              <p>Syntax Errors: 40%</p>
-              <p>Logic Errors: 35%</p>
-              <p>Style Issues: 25%</p>
-            </div>
+            <p>Score: {{ analysisData?.data?.error?.Score || 'N/A' }}</p>
+            
             <div class="charts-container d-flex">
               <BarChart :data="barData" />
               <PieChart :data="pieData" />
-              
             </div>
           </div>
         </div>
@@ -42,20 +37,6 @@
 
       <div v-if="currentView === 'history'">
         <HistoryPage />
-      </div>
-    </div>
-
-    <!-- 弹窗显示静态结果 -->
-    <div v-if="showModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>Analysis Result</h3>
-        <p>Score: 85</p>
-        <div class="static-pie-chart">
-          <p>Syntax Errors: 40%</p>
-          <p>Logic Errors: 35%</p>
-          <p>Style Issues: 25%</p>
-        </div>
-        <button class="btn btn-close-modal mt-3" @click="showModal = false">Close</button>
       </div>
     </div>
   </div>
@@ -73,25 +54,81 @@ export default {
     PieChart,
     HistoryPage,
   },
-
   data() {
     return {
+      user_id: '4',
       username: 'User',
       currentView: 'main', // 初始界面设置为 'main'
       showResults: false,
-      showModal: false,
-      //showResults: false,
-      pieData: [20, 25, 15, 20, 20],
-      barData: [50, 30, 40, 20, 60],
+      analysisData: null,
+      defaultAnalysisData: {
+        success: true,
+        data: {
+          results: [
+            { Line: "8", "Error Type": "C0301", Message: "Line too long", RuleID: "line-too-long" },
+            { Line: "38", "Error Type": "C0305", Message: "Trailing newlines", RuleID: "trailing-newlines" },
+            { Line: "1", "Error Type": "C0114", Message: "Missing module docstring", RuleID: "missing-module-docstring" },
+          ],
+          error: {
+            C: 4,
+            W: 0,
+            E: 1,
+            R: 0,
+            Score: 5,
+          },
+        },
+      },
+      selectedFile: null,
     };
   },
+  computed: {
+    pieData() {
+      if (!this.analysisData) return [];
+      const { C, W, E, R } = this.analysisData.data.error;
+      return [C, W, E, R];
+    },
+    barData() {
+      return this.pieData;
+    },
+  },
   methods: {
-    analyze() {
+    async analyze() {
+      if (!this.selectedFile) {
+        alert("Please upload a file first!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("upload_file", this.selectedFile);
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/file/analyse/", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.analysisData = data;
+        } else {
+          console.error("Failed to fetch data from server. Using default data.");
+          this.analysisData = this.defaultAnalysisData;
+        }
+      } catch (error) {
+        console.error("Error while fetching data:", error);
+        this.analysisData = this.defaultAnalysisData;
+      }
+
       this.showResults = true;
-      this.pieData = [20, 30, 10, 25, 15]; // 模拟的分析结果
+    },
+    handleFileUpload(event) {
+      this.selectedFile = event.target.files[0];
     },
     logout() {
-      this.$emit('switch', 'LoginPage'); // 触发事件通知父组件切换到登录界面
+      this.$emit("switch", "LoginPage"); // 切换到登录页面
     },
   },
 };
@@ -103,11 +140,6 @@ export default {
   justify-content: space-around;
   align-items: center;
   gap: 20px;
-}
-
-.chart-container {
-  flex: 1;
-  height: 300px; /* 可以根据需要调整高度 */
 }
 
 .top-bar {
@@ -137,83 +169,10 @@ export default {
   background-color: #e9ecef;
 }
 
-.btn-page:hover {
-  background-color: #ddd;
-}
-
 .card {
   border-radius: 15px;
   padding: 2.5rem;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
-}
-
-h2, h3 {
-  color: #333;
-}
-
-.form-control-file {
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.result-box {
-  white-space: pre-wrap;
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.static-pie-chart {
-  background-color: #f1f1f1;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: left;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 300px;
-  text-align: center;
-}
-
-.btn-close-modal {
-  padding: 0.5rem 1rem;
-  background-color: #d9534f;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-}
-
-.btn-analyze {
-  background: linear-gradient(to right, #43cea2, #185a9d);
-  color: #fff;
-  border: none;
-}
-
-.btn-view-result {
-  background: #5bc0de;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-}
-
-.btn-analyze:hover, .btn-view-result:hover {
-  background-color: #499ecf;
 }
 </style>

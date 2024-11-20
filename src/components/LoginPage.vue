@@ -30,8 +30,10 @@ export default {
   name: 'LoginPage',
   data() {
     return {
+      user_id:'',
       username: '',
-      password: ''
+      password: '',
+      email:''
     }
   },
   methods: {
@@ -43,7 +45,7 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            username: this.username,
+            email: this.email,
             password: this.password
           })
         });
@@ -51,7 +53,8 @@ export default {
         const data = await response.json();
 
         if (response.ok && data.success) {
-          this.$emit('authenticated', 'MainPage');
+          const { username, user_id } = data; // 从响应中提取用户名和用户ID
+          this.$emit('authenticated', { page: 'MainPage', username, user_id });
         } else {
           alert(data.message || 'Invalid credentials. Please try again.');
         }
@@ -61,7 +64,13 @@ export default {
       }
     },
     goToMainPage() {
-      this.$emit('authenticated', 'MainPage');
+      if (!this.username || !this.user_id) {
+        // 调试用：设置默认值以避免未定义问题
+        this.username = 'TestUser';
+        this.user_id = '1234';
+      }
+      this.$emit('authenticated', { page: 'MainPage', username: this.username, user_id: this.user_id });
+
     }
   }
 }
