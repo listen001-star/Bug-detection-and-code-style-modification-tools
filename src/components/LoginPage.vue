@@ -53,8 +53,8 @@ export default {
         const data = await response.json();
 
         if (response.ok && data.success) {
-          const { username, user_id } = data; // 从响应中提取用户名和用户ID
-          this.$emit('authenticated', { page: 'MainPage', username, user_id });
+          const { email,username, user_id } = data; // 从响应中提取用户名和用户ID
+          this.$emit('authenticated', { page: 'MainPage', email, username, user_id });
         } else {
           alert(data.message || 'Invalid credentials. Please try again.');
         }
@@ -64,12 +64,13 @@ export default {
       }
     },
     goToMainPage() {
-      if (!this.username || !this.user_id) {
+      if (!this.username || !this.user_id || !this.email) {
         // 调试用：设置默认值以避免未定义问题
         this.username = 'TestUser';
         this.user_id = '1234';
+        this.email = '1234567@gmail.com'
       }
-      this.$emit('authenticated', { page: 'MainPage', username: this.username, user_id: this.user_id });
+      this.$emit('authenticated', { page: 'MainPage', email:this.email ,username: this.username, user_id: this.user_id });
 
     }
   }

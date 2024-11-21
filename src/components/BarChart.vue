@@ -19,18 +19,18 @@
     props: {
       data: {
         type: Array,
-        default: () => [50, 30, 40, 20, 60], // 默认的错误数量
+        default: () => [50, 30, 40, 20], // 默认的错误数量
       },
     },
     computed: {
       chartData() {
         return {
-          labels: ['Error Type C', 'Error Type R', 'Error Type W', 'Error Type E', 'Error Type F'],
+          labels: ['Error Type C', 'Error Type R', 'Error Type W', 'Error Type E'],
           datasets: [
             {
               label: 'Error Count',
               data: this.data,
-              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
             },
           ],
         };

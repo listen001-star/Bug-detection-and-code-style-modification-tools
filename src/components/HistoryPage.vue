@@ -47,11 +47,17 @@ export default {
   },
   data() {
     function generateRandomTestData() {
-      return {
-        score: Math.floor(Math.random() * 30) + 70, // 随机分数在70-100之间
-        pieData: Array.from({ length: 5 }, () => Math.floor(Math.random() * 25) + 10), // 随机饼图数据
-        barData: Array.from({ length: 5 }, () => Math.floor(Math.random() * 40) + 20), // 随机柱状图数据
-      };
+      const barData = Array.from({ length: 4 }, () => Math.floor(Math.random() * 40) + 20);
+  
+  // 使用 barData 计算比例
+  const total = barData.reduce((acc, value) => acc + value, 0);
+  const pieData = total === 0 ? [] : barData.map(value => ((value / total) * 100).toFixed(2));
+  
+  return {
+    score: Math.floor(Math.random() * 3) + 7, // 随机分数在7-10之间
+    barData: barData,  // 随机柱状图数据
+    pieData: pieData,  // 随机饼图数据
+  };
     }
 
     return {

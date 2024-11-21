@@ -27,6 +27,39 @@
             <h3>Results</h3>
             <p>Score: {{ analysisData?.data?.error?.Score || 'N/A' }}</p>
             
+            <!-- 显示分析结果 -->
+            <div class="results-container">
+              <h4>Details</h4>
+              <div class="scroll-box">
+                <ul>
+                  <li v-for="(result, index) in analysisData.data.results" :key="index">
+                    Line: {{ result.Line }}, Error Type: {{ result["Error Type"] }}, 
+                    Message: {{ result.Message }}, RuleID: {{ result.RuleID }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 聊天框 -->
+            <div class="chat-container mt-4">
+              <h4>Chat</h4>
+              <div class="chat-box">
+                <div v-for="(msg, index) in chatMessages" :key="index" class="chat-message">
+                  <span class="user">{{ msg.user }}:</span>
+                  <span class="message">{{ msg.text }}</span>
+                </div>
+              </div>
+              <div class="chat-input">
+                <input 
+                  type="text" 
+                  v-model="newMessage" 
+                  placeholder="Ask a question..." 
+                  @keyup.enter="sendMessage"
+                />
+                <button class="btn btn-primary" @click="sendMessage">Send</button>
+              </div>
+            </div>
+            
             <div class="charts-container d-flex">
               <BarChart :data="barData" />
               <PieChart :data="pieData" />
@@ -56,6 +89,10 @@ export default {
   },
   data() {
     return {
+      chatMessages: [
+        { user: 'GPT', text: 'Hi! Ask me anything about your results or coding.' }, // 默认欢迎消息
+      ],
+      newMessage: '',
       user_id: '4',
       username: 'User',
       currentView: 'main', // 初始界面设置为 'main'
@@ -70,11 +107,11 @@ export default {
             { Line: "1", "Error Type": "C0114", Message: "Missing module docstring", RuleID: "missing-module-docstring" },
           ],
           error: {
-            C: 4,
-            W: 0,
-            E: 1,
-            R: 0,
-            Score: 5,
+            C: 14,
+            W: 10,
+            E: 11,
+            R: 5,
+            Score: 9,
           },
         },
       },
@@ -83,15 +120,55 @@ export default {
   },
   computed: {
     pieData() {
+      // if (!this.analysisData) return [];
+       const { C, W, E, R } = this.analysisData.data.error;
+      // return [C, W, E, R];
+      const total = C + W + E + R; // 计算总数
+    if (total === 0) return []; // 防止除以0
+    return [
+      (C / total * 100).toFixed(2),
+      (W / total * 100).toFixed(2),
+      (E / total * 100).toFixed(2),
+      (R / total * 100).toFixed(2),
+    ];
+    },
+    barData() {
       if (!this.analysisData) return [];
       const { C, W, E, R } = this.analysisData.data.error;
       return [C, W, E, R];
     },
-    barData() {
-      return this.pieData;
-    },
   },
   methods: {
+    async sendMessage() {
+      if (this.newMessage.trim()) {
+      const question = this.newMessage;
+      this.chatMessages.push({ user: 'User', text: question }); // 添加用户消息
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/gpt/", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          this.chatMessages.push({ user: 'GPT', text: data.data }); // 添加 GPT 回复
+        } else {
+          this.chatMessages.push({ user: 'GPT', text: "Sorry, I couldn't answer that." });
+        }
+      } else {
+        this.chatMessages.push({ user: 'GPT', text: "Error connecting to the server." });
+      }
+      } catch (error) {
+      this.chatMessages.push({ user: 'GPT', text: "Error connecting to the server." });
+      }
+
+    this.newMessage = ''; // 清空输入框
+  }
+},
+
     async analyze() {
       if (!this.selectedFile) {
         alert("Please upload a file first!");
