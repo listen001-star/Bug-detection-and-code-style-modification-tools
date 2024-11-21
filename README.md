@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+# Bug-detection-and-code-style-modification-tools
 Software Engineering
 # Pylint is a static code analyser for Python 2 or 3. The latest version supports Python 3.9.0 and above.
 
