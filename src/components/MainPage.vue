@@ -6,6 +6,7 @@
         <span class="username-display mr-5">Hello, {{ username }}</span>
         <button class="btn btn-page mr-3" :class="{ active: currentView === 'main' }" @click="currentView = 'main'">Main</button>
         <button class="btn btn-page mr-3" :class="{ active: currentView === 'history' }" @click="currentView = 'history'">History</button>
+        <button class="btn btn-page mr-3" :class="{ active: currentView === 'userinfo' }" @click="currentView = 'userinfo'">User</button>
         <button @click="logout" class="btn btn-page">Logout</button>
       </div>
     </div>
@@ -21,7 +22,10 @@
           </div>
           <div class="mb-4">
             <h3>Execute Command</h3>
-            <button class="btn btn-analyze btn-block" @click="analyze">Analyze with Pylint</button>
+            <div class="d-flex">
+              <button class="btn btn-analyze mr-3" @click="analyze">Analyze with Pylint</button>
+                <button class="btn btn-export" @click="exportAnalysis">Export Results</button>
+            </div>
           </div>
           <div v-if="showResults" class="mt-4">
             <h3>Results</h3>
@@ -70,6 +74,8 @@
 
       <div v-if="currentView === 'history'">
         <HistoryPage />
+      </div><div v-if="currentView === 'userinfo'">
+        <UserinfoPage />
       </div>
     </div>
   </div>
@@ -79,6 +85,7 @@
 import BarChart from './BarChart.vue';
 import PieChart from './PieChart.vue';
 import HistoryPage from './HistoryPage.vue';
+import UserinfoPage from './UserinfoPage.vue';
 
 export default {
   name: 'MainPage',
@@ -86,6 +93,7 @@ export default {
     BarChart,
     PieChart,
     HistoryPage,
+    UserinfoPage,
   },
   data() {
     return {
@@ -139,6 +147,35 @@ export default {
     },
   },
   methods: {
+    async exportAnalysis() {
+    if (!this.analysisData) {
+      alert("No analysis data available to export.");
+      return;
+    }
+
+    const analysisText = this.formatAnalysisData();
+    const blob = new Blob([analysisText], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "analysis_results.txt";
+    link.click();
+  },
+  formatAnalysisData() {
+    const results = this.analysisData?.data?.results || [];
+    const errorStats = this.analysisData?.data?.error || {};
+    const lines = [];
+
+    lines.push("Analysis Results:\n");
+    lines.push("Score: " + (errorStats.Score || "N/A") + "\n");
+    lines.push("\nDetails:\n");
+    results.forEach((result) => {
+      lines.push(
+        `Line: ${result.Line}, Error Type: ${result["Error Type"]}, Message: ${result.Message}, RuleID: ${result.RuleID}`
+      );
+    });
+
+    return lines.join("\n");
+  },
     async sendMessage() {
       if (this.newMessage.trim()) {
       const question = this.newMessage;
