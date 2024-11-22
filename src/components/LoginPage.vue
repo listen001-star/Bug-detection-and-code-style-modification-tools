@@ -6,7 +6,7 @@
         <form @submit.prevent="handleLogin">
           <div class="form-group mb-4 d-flex align-items-center">
             <label for="email" class="form-label">Email</label>
-            <input type="text" id="email" v-model.trim="username" class="form-control flex-grow-1" required />
+            <input type="text" id="email" v-model.trim="email" class="form-control flex-grow-1" required />
           </div>
           <div class="form-group mb-4 d-flex align-items-center">
             <label for="password" class="form-label">Password</label>
