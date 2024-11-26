@@ -17,9 +17,9 @@
         <div class="text-center mb-4">
           <button class="btn btn-register btn-block" @click="$emit('switch', 'register')">Go to Register</button>
         </div>
-        <div class="text-center">
+        <!-- <div class="text-center">
           <button class="btn btn-main-page btn-block" @click="goToMainPage">Go to Main Page</button>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

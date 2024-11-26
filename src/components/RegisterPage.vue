@@ -16,6 +16,10 @@
             <label for="password" class="form-label">Password</label>
             <input type="password" id="password" v-model.trim="password" class="form-control flex-grow-1" required />
           </div>
+          <div class="form-group mb-4 d-flex align-items-center">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" v-model.trim="confirmPassword" class="form-control flex-grow-1" required />
+          </div>
           <button type="submit" class="btn btn-register btn-block mb-4">Register</button>
         </form>
         <div class="text-center">
@@ -33,13 +37,19 @@ export default {
     return {
       username: '',
       email: '',
-      password: ''
+      password: '',
+      confirmPassword: ''  // Added confirm password field
     }
   },
   methods: {
     async handleRegister() {
       if (!this.validateEmail(this.email)) {
         alert('Invalid email format.');
+        return;
+      }
+
+      if (this.password !== this.confirmPassword) {
+        alert('Passwords do not match. Please try again.');
         return;
       }
 
